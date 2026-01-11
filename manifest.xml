@@ -3,99 +3,123 @@
   xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
   xsi:type="TaskPaneApp">
-  
+
   <Id>8bb1841d-67e2-4e9f-8f58-8ab00652be40</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>Your Name</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
+
   <DisplayName DefaultValue="AI Text Detector"/>
   <Description DefaultValue="Detects AI-generated text in real-time"/>
-  
+
   <IconUrl DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-80.png"/>
   <SupportUrl DefaultValue="https://iamhyminalhymn.github.io/L.A.D"/>
-  
+
   <AppDomains>
     <AppDomain>https://iamhyminalhymn.github.io</AppDomain>
   </AppDomains>
-  
+
+  <!-- ✅ CORRECT HOST -->
   <Hosts>
-    <Host Name="Document"/>
+    <Host Name="Word"/>
   </Hosts>
-  
+
   <DefaultSettings>
     <SourceLocation DefaultValue="https://iamhyminalhymn.github.io/L.A.D/index.html"/>
   </DefaultSettings>
-  
+
   <Permissions>ReadWriteDocument</Permissions>
-  
-  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+
+  <!-- ✅ REQUIRED FOR COMMANDS -->
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="WordApi" MinVersion="1.3"/>
+    </Sets>
+  </Requirements>
+
+  <!-- ✅ VERSION OVERRIDES -->
+  <VersionOverrides
+    xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+    xsi:type="VersionOverridesV1_1">
+
     <Hosts>
-      <Host xsi:type="Document">
+      <Host xsi:type="Word">
         <DesktopFormFactor>
+
           <GetStarted>
             <Title resid="GetStarted.Title"/>
             <Description resid="GetStarted.Description"/>
             <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
           </GetStarted>
-          
+
           <FunctionFile resid="Commands.Url"/>
-          
+
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <OfficeTab id="TabHome">
               <Group id="CommandsGroup">
                 <Label resid="CommandsGroup.Label"/>
+
                 <Icon>
                   <bt:Image size="16" resid="Icon.16x16"/>
                   <bt:Image size="32" resid="Icon.32x32"/>
                   <bt:Image size="80" resid="Icon.80x80"/>
                 </Icon>
-                
+
                 <Control xsi:type="Button" id="TaskpaneButton">
                   <Label resid="TaskpaneButton.Label"/>
+
                   <Supertip>
                     <Title resid="TaskpaneButton.Label"/>
                     <Description resid="TaskpaneButton.Tooltip"/>
                   </Supertip>
+
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16"/>
                     <bt:Image size="32" resid="Icon.32x32"/>
                     <bt:Image size="80" resid="Icon.80x80"/>
                   </Icon>
+
                   <Action xsi:type="ShowTaskpane">
                     <TaskpaneId>ButtonId1</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url"/>
                   </Action>
                 </Control>
+
               </Group>
             </OfficeTab>
           </ExtensionPoint>
+
         </DesktopFormFactor>
       </Host>
     </Hosts>
-    
+
+    <!-- ✅ RESOURCES -->
     <Resources>
       <bt:Images>
         <bt:Image id="Icon.16x16" DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-16.png"/>
         <bt:Image id="Icon.32x32" DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-32.png"/>
         <bt:Image id="Icon.80x80" DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-80.png"/>
       </bt:Images>
+
       <bt:Urls>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://iamhyminalhymn.github.io/L.A.D"/>
         <bt:Url id="Commands.Url" DefaultValue="https://iamhyminalhymn.github.io/L.A.D/commands.html"/>
         <bt:Url id="Taskpane.Url" DefaultValue="https://iamhyminalhymn.github.io/L.A.D/index.html"/>
       </bt:Urls>
+
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="AI Text Detector"/>
         <bt:String id="CommandsGroup.Label" DefaultValue="AI Detector"/>
         <bt:String id="TaskpaneButton.Label" DefaultValue="Show AI Detector"/>
       </bt:ShortStrings>
+
       <bt:LongStrings>
         <bt:String id="GetStarted.Description" DefaultValue="Detect AI-generated text in your documents"/>
         <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open the AI Text Detector panel"/>
       </bt:LongStrings>
     </Resources>
+
   </VersionOverrides>
 </OfficeApp>
