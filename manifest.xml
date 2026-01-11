@@ -6,7 +6,7 @@
   xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
   xsi:type="TaskPaneApp">
   
-  <Id>12345678-1234-1234-1234-123456789012</Id>
+  <Id>8bb1841d-67e2-4e9f-8f58-8ab00652be40</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>Your Name</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
@@ -100,3 +100,4 @@
   </VersionOverrides>
 
 </OfficeApp>
+
