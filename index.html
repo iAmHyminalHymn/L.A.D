@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text Detector</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 100%;
+        }
+        
+        h2 {
+            color: #333;
+            font-size: 18px;
+            margin: 0 0 16px 0;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        button:hover {
+            background: #106ebe;
+        }
+        
+        button.active {
+            background: #107c10;
+        }
+        
+        button.active:hover {
+            background: #0e6b0e;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .status.monitoring {
+            background: #e6f4ea;
+            color: #137333;
+            border-left: 4px solid #34a853;
+        }
+        
+        .status.scanning {
+            background: #fff4ce;
+            color: #6f5f00;
+            border-left: 4px solid #ffb900;
+        }
+        
+        .status.stopped {
+            background: #f3f3f3;
+            color: #666;
+            border-left: 4px solid #999;
+        }
+        
+        .report {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .metric-value {
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .metric-value.high {
+            color: #d13438;
+        }
+        
+        .metric-value.medium {
+            color: #ff8c00;
+        }
+        
+        .metric-value.low {
+            color: #107c10;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+        
+        .settings {
+            margin-top: 20px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .setting-item {
+            margin: 12px 0;
+        }
+        
+        label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        .threshold-value {
+            text-align: center;
+            font-weight: 600;
+            color: #0078d4;
+        }
+
+        .pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34a853;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>AI Text Detector</h2>
+        
+        <div class="controls">
+            <button id="toggleButton" onclick="toggleMonitoring()">Start Live Detection</button>
+            <button id="scanButton" onclick="scanDocument()">Scan Full Document</button>
+            <button id="clearButton" onclick="clearHighlights()">Clear Highlights</button>
+        </div>
+        
+        <div id="status" class="status stopped">
+            Live detection is stopped
+        </div>
+        
+        <div class="report">
+            <h3 style="margin-top: 0; font-size: 16px;">Detection Report</h3>
+            <div class="metric">
+                <span class="metric-label">Total Paragraphs</span>
+                <span class="metric-value" id="totalParagraphs">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">AI-Detected</span>
+                <span class="metric-value high" id="aiDetected">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Human-Written</span>
+                <span class="metric-value low" id="humanWritten">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">AI Probability</span>
+                <span class="metric-value" id="aiProbability">0%</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Last Checked</span>
+                <span class="metric-value" id="lastChecked" style="font-size: 12px;">Never</span>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-title">Highlight Key:</div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffcccc;"></div>
+                <span>High AI Probability (>70%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fff4cc;"></div>
+                <span>Medium AI Probability (40-70%)</span>
+            </div>
+        </div>
+        
+        <div class="settings">
+            <h3 style="margin-top: 0; font-size: 16px;">Settings</h3>
+            <div class="setting-item">
+                <label for="thresholdSlider">Detection Threshold</label>
+                <input type="range" id="thresholdSlider" min="0" max="100" value="40" oninput="updateThreshold(this.value)">
+                <div class="threshold-value" id="thresholdValue">40%</div>
+            </div>
+            <div class="setting-item">
+                <label for="delaySlider">Detection Delay (seconds)</label>
+                <input type="range" id="delaySlider" min="1" max="10" value="2" oninput="updateDelay(this.value)">
+                <div class="threshold-value" id="delayValue">2s</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let detectionThreshold = 40;
+        let detectionDelay = 2000; // milliseconds
+        let isMonitoring = false;
+        let changeHandler = null;
+        let debounceTimer = null;
+        let lastAnalyzedContent = '';
+        
+        Office.onReady((info) => {
+            if (info.host === Office.HostType.Word) {
+                console.log('AI Detector Add-in loaded');
+            }
+        });
+        
+        function updateThreshold(value) {
+            detectionThreshold = parseInt(value);
+            document.getElementById('thresholdValue').textContent = value + '%';
+        }
+        
+        function updateDelay(value) {
+            detectionDelay = parseInt(value) * 1000;
+            document.getElementById('delayValue').textContent = value + 's';
+        }
+        
+        async function toggleMonitoring() {
+            if (!isMonitoring) {
+                await startMonitoring();
+            } else {
+                await stopMonitoring();
+            }
+        }
+        
+        async function startMonitoring() {
+            try {
+                await Word.run(async (context) => {
+                    // Register content change event
+                    changeHandler = context.document.onContentControlAdded.add(handleContentChange);
+                    
+                    // Also track paragraph changes
+                    const body = context.document.body;
+                    body.track();
+                    
+                    await context.sync();
+                    
+                    isMonitoring = true;
+                    updateMonitoringUI(true);
+                    
+                    // Start polling for changes (since Word API event support is limited)
+                    startPolling();
+                    
+                    // Do initial scan
+                    await scanDocumentInternal(context);
+                });
+            } catch (error) {
+                console.error('Error starting monitoring:', error);
+            }
+        }
+        
+        async function stopMonitoring() {
+            try {
+                await Word.run(async (context) => {
+                    if (changeHandler) {
+                        changeHandler.remove();
+                        changeHandler = null;
+                    }
+                    
+                    await context.sync();
+                    
+                    isMonitoring = false;
+                    updateMonitoringUI(false);
+                    stopPolling();
+                });
+            } catch (error) {
+                console.error('Error stopping monitoring:', error);
+            }
+        }
+        
+        function updateMonitoringUI(active) {
+            const button = document.getElementById('toggleButton');
+            const status = document.getElementById('status');
+            
+            if (active) {
+                button.textContent = 'Stop Live Detection';
+                button.className = 'active';
+                status.className = 'status monitoring';
+                status.innerHTML = '<span class="pulse"></span>Live detection is active';
+            } else {
+                button.textContent = 'Start Live Detection';
+                button.className = '';
+                status.className = 'status stopped';
+                status.textContent = 'Live detection is stopped';
+            }
+        }
+        
+        // Polling mechanism to detect changes
+        let pollingInterval = null;
+        
+        function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            pollingInterval = setInterval(() => {
+                if (isMonitoring) {
+                    checkForChanges();
+                }
+            }, detectionDelay);
+        }
+        
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+        
+        async function checkForChanges() {
+            if (!isMonitoring) return;
+            
+            try {
+                await Word.run(async (context) => {
+                    const body = context.document.body;
+                    body.load('text');
+                    await context.sync();
+                    
+                    const currentContent = body.text;
+                    
+                    // Check if content has changed
+                    if (currentContent !== lastAnalyzedContent) {
+                        lastAnalyzedContent = currentContent;
+                        
+                        // Update status
+                        const status = document.getElementById('status');
+                        status.className = 'status scanning';
+                        status.innerHTML = '<span class="pulse"></span>Analyzing changes...';
+                        
+                        await scanDocumentInternal(context);
+                        
+                        // Restore monitoring status
+                        setTimeout(() => {
+                            if (isMonitoring) {
+                                status.className = 'status monitoring';
+                                status.innerHTML = '<span class="pulse"></span>Live detection is active';
+                            }
+                        }, 1000);
+                    }
+                });
+            } catch (error) {
+                console.error('Error checking for changes:', error);
+            }
+        }
+        
+        function handleContentChange(event) {
+            // Debounce the detection
+            if (debounceTimer) clearTimeout(debounceTimer);
+            
+            debounceTimer = setTimeout(() => {
+                checkForChanges();
+            }, detectionDelay);
+        }
+        
+        async function scanDocument() {
+            const button = document.getElementById('scanButton');
+            button.disabled = true;
+            
+            try {
+                await Word.run(async (context) => {
+                    await scanDocumentInternal(context);
+                });
+            } catch (error) {
+                console.error('Error scanning document:', error);
+            } finally {
+                button.disabled = false;
+            }
+        }
+        
+        async function scanDocumentInternal(context) {
+            // Clear existing highlights first
+            await clearHighlightsInternal(context);
+            
+            const paragraphs = context.document.body.paragraphs;
+            paragraphs.load('text,items');
+            await context.sync();
+            
+            let totalParagraphs = 0;
+            let aiDetected = 0;
+            let humanWritten = 0;
+            let totalAIScore = 0;
+            
+            // Process each paragraph
+            for (let i = 0; i < paragraphs.items.length; i++) {
+                const paragraph = paragraphs.items[i];
+                const text = paragraph.text.trim();
+                
+                if (text.length > 10) {
+                    totalParagraphs++;
+                    
+                    const aiScore = await detectAIText(text);
+                    totalAIScore += aiScore;
+                    
+                    if (aiScore >= detectionThreshold) {
+                        aiDetected++;
+                        const color = aiScore > 70 ? '#ffcccc' : '#fff4cc';
+                        paragraph.font.highlightColor = color;
+                    } else {
+                        humanWritten++;
+                    }
+                }
+            }
+            
+            await context.sync();
+            
+            // Update report
+            document.getElementById('totalParagraphs').textContent = totalParagraphs;
+            document.getElementById('aiDetected').textContent = aiDetected;
+            document.getElementById('humanWritten').textContent = humanWritten;
+            
+            const avgProbability = totalParagraphs > 0 ? (totalAIScore / totalParagraphs).toFixed(1) : 0;
+            const probElement = document.getElementById('aiProbability');
+            probElement.textContent = avgProbability + '%';
+            
+            if (avgProbability > 70) {
+                probElement.className = 'metric-value high';
+            } else if (avgProbability > 40) {
+                probElement.className = 'metric-value medium';
+            } else {
+                probElement.className = 'metric-value low';
+            }
+            
+            // Update last checked time
+            const now = new Date();
+            document.getElementById('lastChecked').textContent = now.toLocaleTimeString();
+        }
+        
+        async function clearHighlights() {
+            const button = document.getElementById('clearButton');
+            button.disabled = true;
+            
+            try {
+                await Word.run(async (context) => {
+                    await clearHighlightsInternal(context);
+                });
+            } catch (error) {
+                console.error('Error clearing highlights:', error);
+            } finally {
+                button.disabled = false;
+            }
+        }
+        
+        async function clearHighlightsInternal(context) {
+            const paragraphs = context.document.body.paragraphs;
+            paragraphs.load('items');
+            await context.sync();
+            
+            for (let i = 0; i < paragraphs.items.length; i++) {
+                paragraphs.items[i].font.highlightColor = null;
+            }
+            
+            await context.sync();
+        }
+        
+        // Mock AI detection function - REPLACE with real API
+        async function detectAIText(text) {
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            let score = 50;
+            
+            if (text.length > 200) score += 10;
+            if (text.includes('Furthermore') || text.includes('Moreover')) score += 15;
+            if (text.includes('In conclusion') || text.includes('To summarize')) score += 20;
+            if (text.split(' ').length > 30) score += 5;
+            if (/\b(delve|comprehensive|robust|leverage|paradigm)\b/i.test(text)) score += 15;
+            
+            score += Math.random() * 20 - 10;
+            
+            return Math.max(0, Math.min(100, score));
+            
+            /* 
+            // REAL API IMPLEMENTATION:
+            try {
+                const response = await fetch('YOUR_API_ENDPOINT', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_KEY'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                const data = await response.json();
+                return data.aiProbability;
+            } catch (error) {
+                console.error('API Error:', error);
+                return 0;
+            }
+            */
+        }
+    </script>
+</body>
+</html>
