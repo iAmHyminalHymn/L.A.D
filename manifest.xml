@@ -13,12 +13,12 @@
   <DisplayName DefaultValue="AI Text Detector"/>
   <Description DefaultValue="Detects AI-generated text in real-time"/>
   
-  <IconUrl DefaultValue="https://your-domain.com/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://your-domain.com/icon-64.png"/>
-  <SupportUrl DefaultValue="https://your-domain.com/support"/>
+  <IconUrl DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://iamhyminalhymn.github.io/L.A.D/icon-64.png"/>
+  <SupportUrl DefaultValue="https://iamhyminalhymn.github.io/L.A.D/support"/>
   
   <AppDomains>
-    <AppDomain>https://your-domain.com</AppDomain>
+    <AppDomain>https://https://iamhyminalhymn.github.io/L.A.D/</AppDomain>
   </AppDomains>
   
   <Hosts>
@@ -98,4 +98,5 @@
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
+
 </OfficeApp>
